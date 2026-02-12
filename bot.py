@@ -6,10 +6,21 @@ import nltk
 nltk.download('punkt_tab')
 
 # Initialize the bot
+# Initialize the bot with logic filters
 chatbot = ChatBot(
     "Milo",
     storage_adapter='chatterbot.storage.SQLStorageAdapter',
-    tagger_profile='chatterbot.tagging.PosHypernymTagger'
+    tagger_profile='chatterbot.tagging.PosHypernymTagger',
+    logic_adapters=[
+        {
+            'import_path': 'chatterbot.logic.BestMatch',
+            'default_response': 'I am sorry, but I do not understand that yet. I am still learning',
+            'maximum_similarity_threshold': 0.70
+        },
+        {
+            'import_path': 'chatterbot.logic.MathematicalEvaluation'
+        }
+    ]
 )
 
 # Train the chatbot with conversations.txt file
@@ -34,5 +45,9 @@ while True:
     if query.lower() in exit_conditions:
         break
     else:
-        # Keep your cool🪴 emoji!
-        print(f"🪴 Milo: {chatbot.get_response(query)}")
+        try:
+            response = chatbot.get_response(query)
+            print(f"🪴 Milo: {response}")
+        except Exception:
+            # If the math logic or anything else breaks, Milo stays polite
+            print("🪴 Milo: I'm sorry, that calculation or sentence confused me a bit!")
