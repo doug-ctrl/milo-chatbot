@@ -1,30 +1,38 @@
 from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer
+from chatterbot.trainers import ListTrainer
 import nltk
 
-#This line ensures the missing piece is always there
+# Ensures the missing piece is always there
 nltk.download('punkt_tab')
 
-#Initialize the bot
+# Initialize the bot
 chatbot = ChatBot(
-            "Milo",
-                  storage_adapter='chatterbot.storage.SQLStorageAdapter',
-                  tagger_profile='chatterbot.tagging.PosHypernymTagger'
-                )
+    "Milo",
+    storage_adapter='chatterbot.storage.SQLStorageAdapter',
+    tagger_profile='chatterbot.tagging.PosHypernymTagger'
+)
 
-#Create a trainer
-#trainer = ChatterBotCorpusTrainer(chatbot)
+# Train the chatbot with conversations.txt file
+trainer = ListTrainer(chatbot)
 
-#Train the bot based on the english corpus
-#Teaches it greetings, conversations, and basic facts
-#trainer.train("chatterbot.corpus.english")
+#Read and train from file
+try:
+    with open('conversations.txt', 'r') as file:
+        training_data = file.read().splitlines()
 
-print("Training Complete! You can now talk to the bot.")
+    trainer.train(training_data)
+    print("Milo has learned your custom conversations!")
+except FileNotFoundError:
+    print("Wait! I couldn't find conversations.txt. Make sure the file exists.")
+# ------------------------------------------
 
-exit_conditions = (":q","quit","exit")
+print("Milo is ready! Type 'quit' or 'exit' to stop.")
+
+exit_conditions = (":q", "quit", "exit")
 while True:
-    query = input(">")
+    query = input("You: ")
     if query.lower() in exit_conditions:
         break
     else:
-        print(f"🪴{chatbot.get_response(query)}")
+        # Keep your cool🪴 emoji!
+        print(f"🪴 Milo: {chatbot.get_response(query)}")
