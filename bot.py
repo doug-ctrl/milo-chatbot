@@ -2,6 +2,7 @@ from chatterbot import ChatBot
 from chatterbot.trainers import ListTrainer
 import nltk
 import os
+import wikipedia
 
 # Ensures the missing piece is always there
 nltk.download('punkt_tab')
@@ -55,10 +56,23 @@ while True:
     query = input("You: ")
     if query.lower() in exit_conditions:
         break
-    else:
+
+    # Check if the user is asking to "search" or "who/what is"
+    if "search" in query.lower() or "who is" in query.lower() or "what is" in query.lower():
+        print("🪴 Milo: Let me look that up for you...")
         try:
-            response = chatbot.get_response(query)
-            print(f"🪴 Milo: {response}")
+            # Get a short 2-sentence summary from Wikipedia
+            search_query = query.replace("search", "").replace("who is", "").replace("what is", "")
+            result = wikipedia.summary(search_query, sentences=2)
+            print(f"🪴 Milo: According to Wikipedia, {result}")
+            continue  # Skip the rest of the loop and start over
         except Exception:
-            # If the math logic or anything else breaks, Milo stays polite
-            print("🪴 Milo: I'm sorry, that calculation or sentence confused me a bit!")
+            print("🪴 Milo: I tried to look that up, but I couldn't find a clear answer.")
+            continue
+
+    # If it's not a search, use the normal chatbot logic
+    try:
+        response = chatbot.get_response(query)
+        print(f"🪴 Milo: {response}")
+    except Exception:
+        print("🪴 Milo: I'm sorry, that sentence confused me a bit!")
