@@ -1,6 +1,7 @@
 from chatterbot import ChatBot
 from chatterbot.trainers import ListTrainer
 import nltk
+import os
 
 # Ensures the missing piece is always there
 nltk.download('punkt_tab')
@@ -11,6 +12,11 @@ chatbot = ChatBot(
     "Milo",
     storage_adapter='chatterbot.storage.SQLStorageAdapter',
     tagger_profile='chatterbot.tagging.PosHypernymTagger',
+
+#Add pre-processors to help Milo "remember" clean versions of text
+    preprocessors=[
+        'chatterbot.preprocessors.clean_whitespace'
+    ],
     logic_adapters=[
         {
             'import_path': 'chatterbot.logic.BestMatch',
@@ -29,16 +35,18 @@ chatbot = ChatBot(
 # Train the chatbot with conversations.txt file
 trainer = ListTrainer(chatbot)
 
-#Read and train from file
-try:
-    with open('conversations.txt', 'r') as file:
-        training_data = file.read().splitlines()
+#Read and train from an entire folder
+training_folder = 'training_data'
 
-    trainer.train(training_data)
-    print("Milo has learned your custom conversations!")
-except FileNotFoundError:
-    print("Wait! I couldn't find conversations.txt. Make sure the file exists.")
-# ------------------------------------------
+if os.path.exists(training_folder):
+    for filename in os.listdir(training_folder):
+        if filename.endswith(".txt"):
+            with open(os.path.join(training_folder, filename), 'r') as file:
+                training_data = file.read().splitlines()
+                trainer.train(training_data)
+    print("Milo has learned everything from the training folder!")
+else:
+    print(f"Wait! I couldn't find the {training_folder} folder.")
 
 print("Milo is ready! Type 'quit' or 'exit' to stop.")
 
