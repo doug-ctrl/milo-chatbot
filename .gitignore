@@ -9,4 +9,10 @@ __pycache__/
 *.sqlite3-wal
 
 # macOS system files
-.DS_Storeite3-wal
+.DS_Store
+
+# User data (Personal names)
+user_name.txt
+
+# PyCharm settings
+.idea/

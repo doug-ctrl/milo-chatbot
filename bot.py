@@ -3,40 +3,31 @@ from chatterbot.trainers import ListTrainer
 import nltk
 import os
 import wikipedia
+import random
 
 # Ensures the missing piece is always there
 nltk.download('punkt_tab')
 
 # Initialize the bot
-# Initialize the bot with logic filters
 chatbot = ChatBot(
     "Milo",
     storage_adapter='chatterbot.storage.SQLStorageAdapter',
     tagger_profile='chatterbot.tagging.PosHypernymTagger',
-
-#Add pre-processors to help Milo "remember" clean versions of text
     preprocessors=[
         'chatterbot.preprocessors.clean_whitespace'
     ],
     logic_adapters=[
         {
             'import_path': 'chatterbot.logic.BestMatch',
-            'default_response': 'I am sorry, but I do not understand that yet. I am still learning',
+            'default_response': 'I am sorry, but I do not understand that yet. I am still learning!',
             'maximum_similarity_threshold': 0.70
         },
-        {
-            'import_path': 'chatterbot.logic.MathematicalEvaluation'
-        },
-        {
-            'import_path': 'chatterbot.logic.TimeLogicAdapter'
-        }
+        {'import_path': 'chatterbot.logic.MathematicalEvaluation'}
     ]
 )
 
-# Train the chatbot with conversations.txt file
+# Training Logic
 trainer = ListTrainer(chatbot)
-
-#Read and train from an entire folder
 training_folder = 'training_data'
 
 if os.path.exists(training_folder):
@@ -49,30 +40,66 @@ if os.path.exists(training_folder):
 else:
     print(f"Wait! I couldn't find the {training_folder} folder.")
 
+# --- NEW: User Name / First Run Logic ---
+user_name_file = 'user_name.txt'
+if not os.path.exists(user_name_file):
+    print("🪴 Milo: Hello! I don't believe we've met. I am Milo.")
+    print("🪴 Milo: What is your name? ")
+    name = input("You: ").strip()
+    if not name:
+        name = "Friend"  # Fallback if they just hit enter
+    with open(user_name_file, 'w') as f:
+        f.write(name)
+    user_name = name
+else:
+    with open(user_name_file, 'r') as f:
+        user_name = f.read().strip()
+
+# UI Variety personalized with the user's name
+greetings = [
+    f"Hello {user_name}! I'm Milo. How can I help you today?",
+    f"Milo online. Ready for your questions, {user_name}!",
+    f"Hi {user_name}! What are we working on today?"
+]
+thinking_phrases = [
+    "Let me check my internal library...",
+    "Searching the world's knowledge...",
+    "Give me a second to look that up.",
+    "Checking Wikipedia for you..."
+]
+
+print(f"🪴 Milo: {random.choice(greetings)}")
 print("Milo is ready! Type 'quit' or 'exit' to stop.")
 
 exit_conditions = (":q", "quit", "exit")
+
 while True:
-    query = input("You: ")
+    query = input("You: ").strip()
+
+    if not query:
+        print("🪴 Milo: I'm here! Did you want to ask me something?")
+        continue
+
     if query.lower() in exit_conditions:
+        print(f"🪴 Milo: Goodbye, {user_name}! Have a great day.")
         break
 
-    # Check if the user is asking to "search" or "who/what is"
-    if "search" in query.lower() or "who is" in query.lower() or "what is" in query.lower():
-        print("🪴 Milo: Let me look that up for you...")
+    # Wikipedia Search Trigger with "Identity Filter"
+    search_triggers = ["search", "who is", "what is"]
+    if any(word in query.lower() for word in search_triggers) and "name" not in query.lower() and "milo" not in query.lower():
+        print(f"🪴 Milo: {random.choice(thinking_phrases)}")
         try:
-            # Get a short 2-sentence summary from Wikipedia
-            search_query = query.replace("search", "").replace("who is", "").replace("what is", "")
+            search_query = query.lower().replace("search", "").replace("who is", "").replace("what is", "").strip()
             result = wikipedia.summary(search_query, sentences=2)
             print(f"🪴 Milo: According to Wikipedia, {result}")
-            continue  # Skip the rest of the loop and start over
+            continue
         except Exception:
-            print("🪴 Milo: I tried to look that up, but I couldn't find a clear answer.")
+            print("🪴 Milo: I searched everywhere, but I couldn't find a definitive answer for that.")
             continue
 
-    # If it's not a search, use the normal chatbot logic
+    # Main Chatbot Logic
     try:
         response = chatbot.get_response(query)
         print(f"🪴 Milo: {response}")
     except Exception:
-        print("🪴 Milo: I'm sorry, that sentence confused me a bit!")
+        print("🪴 Milo: I'm sorry, I got a little confused by that sentence!")
