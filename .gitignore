@@ -16,3 +16,8 @@ user_name.txt
 
 # PyCharm settings
 .idea/
+
+# PyInstaller folders
+build/
+dist/
+*.spec
