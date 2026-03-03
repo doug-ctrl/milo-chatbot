@@ -1,6 +1,7 @@
 # Python environment
 .venv/
 __pycache__/
+settings.json
 
 # Milo's Database & Environment
 *.db
