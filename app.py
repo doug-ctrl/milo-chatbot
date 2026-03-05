@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
 from bot import get_milo_response, user_name
+import os
 
 app = Flask(__name__)
 
@@ -22,5 +23,6 @@ def chat():
     return jsonify({"response": bot_reply})
 
 if __name__ == '__main__':
-    # Setting debug=True lets the server restart automatically when you save changes
-    app.run(debug=True, port=5001)
+    # Use the port Render gives us, or default to 10000 for local testing
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port)
