@@ -21,10 +21,6 @@ def chat():
     bot_reply = get_milo_response(user_input)
     return jsonify({"response": bot_reply})
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
 if __name__ == '__main__':
     # Setting debug=True lets the server restart automatically when you save changes
     app.run(debug=True, port=5001)
