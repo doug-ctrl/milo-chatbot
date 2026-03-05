@@ -22,7 +22,10 @@ def chat():
     bot_reply = get_milo_response(user_input)
     return jsonify({"response": bot_reply})
 
-if __name__ == '__main__':
-    # Use the port Render gives us, or default to 10000 for local testing
+import os
+
+if __name__ == "__main__":
+    # Render provides the PORT environment variable
     port = int(os.environ.get("PORT", 10000))
+    # host='0.0.0.0' is REQUIRED for Render to see the app
     app.run(host='0.0.0.0', port=port)
