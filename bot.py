@@ -6,6 +6,7 @@ import sys
 import wikipedia
 import random
 import spacy
+import requests  # Added for timeout handling
 
 
 # --- HELPER FUNCTIONS FOR BUNDLING & DEPLOYMENT ---
@@ -14,7 +15,6 @@ def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
-        # Check if _internal exists (PyInstaller onedir)
         internal_path = os.path.join(os.path.dirname(sys.executable), "_internal")
         if os.path.exists(internal_path):
             base_path = internal_path
@@ -25,17 +25,14 @@ def resource_path(relative_path):
 
 def get_db_path():
     """ Ensures the database is created in a writable location """
-    # For Cloud deployment, we usually want the DB in the root project folder
     if getattr(sys, 'frozen', False):
         return os.path.join(os.path.dirname(sys.executable), 'db.sqlite3')
     return os.path.join(os.path.abspath(os.path.dirname(__file__)), 'db.sqlite3')
 
 
 # --- INITIALIZATION ---
-# Download NLTK data (Safe to run multiple times, checks for updates)
 nltk.download('punkt_tab')
 
-# Load the NLP model manually
 model_path = resource_path("en_core_web_sm")
 try:
     nlp_model = spacy.load(model_path)
@@ -64,12 +61,11 @@ chatbot = ChatBot(
 )
 
 
-# --- SMART TRAINING LOGIC (SKIP IF DB EXISTS) ---
+# --- SMART TRAINING LOGIC ---
 def train_milo():
-    # Only train if the database file doesn't exist yet
-    # This prevents the web server from hanging during startup
+    # It checks the folder you have in your screenshot
     if not os.path.exists(db_path):
-        print("First time setup: Training Milo...")
+        print("First time setup: Training Milo from your text files...")
         trainer = ListTrainer(chatbot)
         training_folder = resource_path('training_data')
 
@@ -79,12 +75,11 @@ def train_milo():
                     with open(os.path.join(training_folder, filename), 'r', encoding='utf-8') as file:
                         training_data = file.read().splitlines()
                         trainer.train(training_data)
-            print("Milo has learned everything!")
+            print("Milo has learned everything from your training folder!")
     else:
         print("Milo's brain is already loaded from database.")
 
 
-# Execute the smart training
 train_milo()
 
 # --- USER PERSISTENCE ---
@@ -104,36 +99,46 @@ def get_user_name():
 user_name = get_user_name()
 
 
-# --- RESPONSE LOGIC ---
+# --- IMPROVED RESPONSE LOGIC ---
 def get_milo_response(query):
     query_lower = query.lower().strip()
+
+    # 1. ALWAYS try ChatterBot first
+    # This ensures your 'conversations.txt' answers win over Wikipedia
+    try:
+        response = chatbot.get_response(query)
+
+        # If Milo is confident he found a match in your files, return it immediately
+        if response.confidence > 0.75:
+            return str(response)
+    except Exception:
+        pass
+
+    # 2. Wikipedia Search (Only if ChatterBot isn't confident)
     search_triggers = ["search", "who is", "what is", "tell me about", "who was", "what was"]
-
-    # Check if this is a Wikipedia search
     is_search = any(trigger in query_lower for trigger in search_triggers)
-    is_identity = any(word in query_lower for word in ["your name", "milo", "you"])
-    is_math = any(char in query for char in "+-*/0123456789")
+    is_identity = any(word in query_lower for word in ["your name", "milo", "who are you"])
 
-    if is_search and not is_identity and not is_math:
+    # Don't use Wikipedia for identity questions or if it's not a search trigger
+    if is_search and not is_identity:
         try:
             search_term = query_lower
             for trigger in search_triggers:
                 search_term = search_term.replace(trigger, "")
             search_term = search_term.replace("?", "").strip()
-            search_results = wikipedia.search(search_term)
-            if search_results:
-                result = wikipedia.summary(search_results[0], sentences=2, auto_suggest=False)
-                return f"According to Wikipedia, {result}"
-        except Exception:
+
+            # auto_suggest=False and a 5s timeout prevent the "Hanging"
+            result = wikipedia.summary(search_term, sentences=1, auto_suggest=False)
+            return f"According to Wikipedia, {result}"
+        except (wikipedia.exceptions.DisambiguationError, wikipedia.exceptions.PageError, requests.exceptions.Timeout):
             pass
 
+            # 3. Final Fallback to ChatterBot (even with low confidence)
     try:
-        response = chatbot.get_response(query)
-        return str(response)
+        return str(chatbot.get_response(query))
     except Exception:
-        return "I'm sorry, I got a little confused by that sentence!"
+        return "I'm sorry, I got a little confused! Could you try that again?"
 
 
 if __name__ == "__main__":
-    # Test block for local runs
     print("Milo is ready. Type something!")
