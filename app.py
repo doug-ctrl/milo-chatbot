@@ -4,12 +4,15 @@ import os
 
 app = Flask(__name__)
 
-
 # The "Home" page route
 @app.route('/')
 def index():
     return render_template('index.html', user=user_name)
 
+# The "About" page route
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 # The "Logic" route - where the chat messages go
 @app.route('/get_response', methods=['POST'])
@@ -21,8 +24,6 @@ def chat():
     # Calling your existing bot logic!
     bot_reply = get_milo_response(user_input)
     return jsonify({"response": bot_reply})
-
-import os
 
 if __name__ == "__main__":
     # Render provides the PORT environment variable
