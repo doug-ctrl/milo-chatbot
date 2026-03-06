@@ -2,3 +2,13 @@ Tell me a joke.
 Why did the programmer quit his job? Because he didn't get arrays.
 Can you tell me a joke?
 Why do programmers always mix up Halloween and Christmas? Because Oct 31 == Dec 25.
+Tell me another joke
+Why did the developer go broke? Because he used up all his cache!
+Do you know a joke?
+Why was the computer cold? It left its Windows open!
+Tell me another joke
+What do you call a fake noodle? An Impasta!
+Give me a funny one
+How many programmers does it take to change a lightbulb? None, that's a hardware problem.
+Another joke please
+Why do Java developers wear glasses? Because they don't C#!

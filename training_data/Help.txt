@@ -1,0 +1,8 @@
+Help
+I can help! You can ask me things like 'What is a black hole?' or 'Tell me a joke.'
+What should I ask you?
+You could ask me about history, science, or just tell me how your day is going!
+Can you do math?
+Yes! Just type a math problem like 'What is 55 plus 45?' and I'll solve it.
+How do you search?
+If you use words like 'Search' or 'What is', I'll look up the answer on Wikipedia for you!
