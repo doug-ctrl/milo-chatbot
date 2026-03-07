@@ -9,7 +9,25 @@
         :root { --user-bg: #007AFF; --milo-bg: #E9E9EB; --text-dark: #1C1C1E; }
         body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; height: 100vh; }
         .chat-container { width: 100%; max-width: 500px; background: white; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        header { padding: 20px 20px 10px 20px; background: #fff; text-align: center; font-weight: 600; font-size: 1.2rem; }
+
+        /* Updated Header with Avatar Support */
+        header {
+            padding: 20px 20px 10px 20px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        .milo-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 8px;
+            border: 2px solid #f0f2f5;
+        }
 
         /* About Link Styling */
         .about-link { text-align: center; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
@@ -32,7 +50,11 @@
 </head>
 <body>
     <div class="chat-container">
-        <header>Milo AI</header>
+        <header>
+            <img src="{{ url_for('static', filename='milo.png') }}" alt="Milo" class="milo-avatar">
+            Milo AI
+        </header>
+
         <div class="about-link">
             <a href="/about">About Milo</a>
         </div>

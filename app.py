@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 from bot import get_milo_response, user_name
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
 # The "Home" page route
 @app.route('/')
