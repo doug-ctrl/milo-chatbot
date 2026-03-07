@@ -103,41 +103,45 @@ def get_user_name():
 user_name = get_user_name()
 
 
-# --- IMPROVED RESPONSE LOGIC ---
+# Responses Logic
 def get_milo_response(query):
     query_lower = query.lower().strip()
 
-    # 1. ALWAYS try ChatterBot first
-    # This ensures your 'conversations.txt' answers win over Wikipedia
+    # 1. Try ChatterBot first (Your trained files)
     try:
         response = chatbot.get_response(query)
-
-        # If Milo is confident he found a match in your files, return it immediately
         if response.confidence > 0.75:
             return str(response)
     except Exception:
         pass
 
-    # 2. Wikipedia Search (Only if ChatterBot isn't confident)
+    # 2. Wikipedia Search Logic
     search_triggers = ["search", "who is", "what is", "tell me about", "who was", "what was"]
     is_search = any(trigger in query_lower for trigger in search_triggers)
     is_identity = any(word in query_lower for word in ["your name", "milo", "who are you"])
 
-    # Don't use Wikipedia for identity questions or if it's not a search trigger
     if is_search and not is_identity:
         try:
+            # Clean the search term
             search_term = query_lower
             for trigger in search_triggers:
                 search_term = search_term.replace(trigger, "")
             search_term = search_term.replace("?", "").strip()
 
-            # auto_suggest=False and a 5s timeout prevent the "Hanging"
-            result = wikipedia.summary(search_term, sentences=1, auto_suggest=False)
-            return f"According to Wikipedia, {result}"
+            # NEW: Get the most likely page title first
+            # This solves the "Cole Palmer" / "Reece James" issue
+            search_results = wikipedia.search(search_term)
+            if search_results:
+                # Use the first result from the search list to get the summary
+                result = wikipedia.summary(search_results[0], sentences=1, auto_suggest=False)
+                return f"According to Wikipedia, {result}"
+
         except (wikipedia.exceptions.DisambiguationError, wikipedia.exceptions.PageError, requests.exceptions.Timeout):
+            return f"I found a few things for '{search_term}', but I couldn't summarize them. Could you be more specific?"
+        except Exception:
             pass
 
-            # 3. Final Fallback to ChatterBot (even with low confidence)
+    # 3. Final Fallback
     try:
         return str(chatbot.get_response(query))
     except Exception:
