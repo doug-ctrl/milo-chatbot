@@ -63,21 +63,25 @@ chatbot = ChatBot(
 
 # --- SMART TRAINING LOGIC ---
 def train_milo():
-    # It checks the folder you have in your screenshot
-    if not os.path.exists(db_path):
-        print("First time setup: Training Milo from your text files...")
-        trainer = ListTrainer(chatbot)
-        training_folder = resource_path('training_data')
+    # syncs with the training_data folder on Render.
+    print("Milo is checking for new training data...")
+    trainer = ListTrainer(chatbot)
+    training_folder = resource_path('training_data')
 
-        if os.path.exists(training_folder):
-            for filename in os.listdir(training_folder):
-                if filename.endswith(".txt"):
-                    with open(os.path.join(training_folder, filename), 'r', encoding='utf-8') as file:
-                        training_data = file.read().splitlines()
-                        trainer.train(training_data)
-            print("Milo has learned everything from your training folder!")
+    if os.path.exists(training_folder):
+        # process every .txt file found in the folder
+        files = [f for f in os.listdir(training_folder) if f.endswith(".txt")]
+
+        for filename in files:
+            print(f"Milo is learning from: {filename}")
+            with open(os.path.join(training_folder, filename), 'r', encoding='utf-8') as file:
+                training_data = file.read().splitlines()
+                if training_data:
+                    trainer.train(training_data)
+
+        print(f"Success! Milo has processed {len(files)} training files.")
     else:
-        print("Milo's brain is already loaded from database.")
+        print("Warning: training_data folder not found!")
 
 
 train_milo()
