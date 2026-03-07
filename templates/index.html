@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Milo AI - Web</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='milo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         :root { --user-bg: #007AFF; --milo-bg: #E9E9EB; --text-dark: #1C1C1E; }
@@ -60,7 +61,11 @@
         </div>
 
         <div id="chat-box">
-            <div class="message milo">Hello, {{ user }}! I'm Milo. How can I help you today?</div>
+            <div class="message milo">Hello! I'm Milo. How can I help you today?</div>
+        </div>
+
+        <div style="text-align: right; padding: 5px 20px; font-size: 0.75rem;">
+            <a href="#" onclick="clearChat()" style="color: #ff4d4d; text-decoration: none; opacity: 0.8;">🗑️ Clear Chat</a>
         </div>
 
         <div id="typing-indicator" style="display:none; padding: 0 20px 10px 20px; font-style: italic; color: #888; font-size: 0.8rem;">
@@ -111,6 +116,16 @@
                 indicator.style.display = 'none';
                 btn.disabled = false;
                 box.scrollTop = box.scrollHeight;
+            }
+        }
+
+        function clearChat() {
+            if (confirm("Are you sure you want to clear the conversation?")) {
+                const box = document.getElementById('chat-box');
+                // Wipes the screen and resets the greeting
+                box.innerHTML = `<div class="message milo">Memory cleared! What's on your mind now?</div>`;
+                // Puts the cursor back in the typing box automatically
+                document.getElementById('user-input').focus();
             }
         }
     </script>
