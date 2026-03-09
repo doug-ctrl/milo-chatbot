@@ -7,51 +7,112 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='milo.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --user-bg: #007AFF; --milo-bg: #E9E9EB; --text-dark: #1C1C1E; }
-        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; height: 100vh; }
-        .chat-container { width: 100%; max-width: 500px; background: white; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        /* CSS Variables for easy theme switching */
+        :root {
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+            --header-bg: #ffffff;
+            --user-bg: #007AFF;
+            --milo-bg: #E9E9EB;
+            --text-main: #1C1C1E;
+            --text-muted: #888;
+            --border-color: #ddd;
+        }
 
-        /* Updated Header with Avatar Support */
+        /* Dark Mode overrides */
+        body.dark-mode {
+            --bg-color: #121212;
+            --container-bg: #1e1e1e;
+            --header-bg: #1e1e1e;
+            --milo-bg: #3a3a3c;
+            --text-main: #e5e5e7;
+            --text-muted: #a1a1a6;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            transition: background 0.3s ease;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--container-bg);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: background 0.3s ease;
+        }
+
         header {
             padding: 20px 20px 10px 20px;
-            background: #fff;
+            background: var(--header-bg);
             display: flex;
             flex-direction: column;
             align-items: center;
             font-weight: 600;
             font-size: 1.2rem;
+            color: var(--text-main);
+            position: relative;
         }
+
+        /* The Moon/Sun Toggle Button */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            background: none;
+            border: none;
+            padding: 0;
+            outline: none;
+        }
+
         .milo-avatar {
             width: 50px;
             height: 50px;
             border-radius: 50%;
             object-fit: cover;
             margin-bottom: 8px;
-            border: 2px solid #f0f2f5;
+            border: 2px solid var(--bg-color);
         }
 
-        /* About Link Styling */
-        .about-link { text-align: center; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
-        .about-link a { color: #888; text-decoration: none; font-size: 0.8rem; font-weight: 400; transition: color 0.2s; }
+        .about-link { text-align: center; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); }
+        .about-link a { color: var(--text-muted); text-decoration: none; font-size: 0.8rem; font-weight: 400; transition: color 0.2s; }
         .about-link a:hover { color: var(--user-bg); }
 
         #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
 
-        /* Bubble Styling */
         .message { max-width: 80%; padding: 10px 15px; border-radius: 18px; font-size: 0.95rem; line-height: 1.4; }
         .user { align-self: flex-end; background: var(--user-bg); color: white; border-bottom-right-radius: 4px; }
-        .milo { align-self: flex-start; background: var(--milo-bg); color: var(--text-dark); border-bottom-left-radius: 4px; }
+        .milo { align-self: flex-start; background: var(--milo-bg); color: var(--text-main); border-bottom-left-radius: 4px; }
 
-        /* Input Styling */
-        .input-area { padding: 20px; border-top: 1px solid #ddd; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 25px; outline: none; font-size: 1rem; }
-        button { background: var(--user-bg); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 600; }
-        button:hover { opacity: 0.9; }
+        .input-area { padding: 20px; border-top: 1px solid var(--border-color); display: flex; gap: 10px; background: var(--container-bg); }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            outline: none;
+            font-size: 1rem;
+            background: var(--bg-color);
+            color: var(--text-main);
+        }
+        button#send-btn { background: var(--user-bg); color: white; border: none; padding: 10px 20px; border-radius: 25px; cursor: pointer; font-weight: 600; }
+        button#send-btn:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
     <div class="chat-container">
         <header>
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
             <img src="{{ url_for('static', filename='milo.png') }}" alt="Milo" class="milo-avatar">
             Milo AI
         </header>
@@ -68,7 +129,7 @@
             <a href="#" onclick="clearChat()" style="color: #ff4d4d; text-decoration: none; opacity: 0.8;">🗑️ Clear Chat</a>
         </div>
 
-        <div id="typing-indicator" style="display:none; padding: 0 20px 10px 20px; font-style: italic; color: #888; font-size: 0.8rem;">
+        <div id="typing-indicator" style="display:none; padding: 0 20px 10px 20px; font-style: italic; color: var(--text-muted); font-size: 0.8rem;">
             Milo is thinking...
         </div>
 
@@ -79,6 +140,28 @@
     </div>
 
     <script>
+        // Load saved theme preference on page load
+        window.onload = () => {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-btn').innerText = '☀️';
+            }
+        };
+
+        function toggleTheme() {
+            const body = document.body;
+            const btn = document.getElementById('theme-btn');
+            body.classList.toggle('dark-mode');
+
+            if (body.classList.contains('dark-mode')) {
+                btn.innerText = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                btn.innerText = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
         async function sendMessage() {
             const input = document.getElementById('user-input');
             const box = document.getElementById('chat-box');
@@ -122,9 +205,7 @@
         function clearChat() {
             if (confirm("Are you sure you want to clear the conversation?")) {
                 const box = document.getElementById('chat-box');
-                // Wipes the screen and resets the greeting
                 box.innerHTML = `<div class="message milo">Memory cleared! What's on your mind now?</div>`;
-                // Puts the cursor back in the typing box automatically
                 document.getElementById('user-input').focus();
             }
         }
