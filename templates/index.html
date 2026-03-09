@@ -181,7 +181,7 @@
             btn.disabled = true;
             box.scrollTop = box.scrollHeight;
 
-            try {
+           try {
                 // 3. Fetch bot response
                 const response = await fetch('/get_response', {
                     method: 'POST',
@@ -190,18 +190,39 @@
                 });
                 const data = await response.json();
 
-                // 4. Add Milo's message
-                box.innerHTML += `<div class="message milo">${data.response}</div>`;
+                // 4. Create an empty bubble for Milo
+                const miloDiv = document.createElement("div");
+                miloDiv.classList.add("message", "milo");
+                box.appendChild(miloDiv);
+
+                // 5. Run the Typewriter effect
+                typeWriter(miloDiv, data.response, box);
+
             } catch (error) {
                 box.innerHTML += `<div class="message milo" style="color: red;">Sorry, I encountered an error.</div>`;
             } finally {
-                // 5. Hide indicator and re-enable button
+                // Hide indicator immediately, but button re-enables AFTER typing
                 indicator.style.display = 'none';
-                btn.disabled = false;
-                box.scrollTop = box.scrollHeight;
             }
         }
+        function typeWriter(element, text, chatBox) {
+            let i = 0;
+            const speed = 30; // Speed in milliseconds (lower is faster)
+            const btn = document.getElementById('send-btn');
 
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll as it types
+                    setTimeout(type, speed);
+                } else {
+                    // Re-enable the send button only once typing is finished
+                    btn.disabled = false;
+                }
+            }
+            type();
+        }
         function clearChat() {
             if (confirm("Are you sure you want to clear the conversation?")) {
                 const box = document.getElementById('chat-box');
